@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface VisitRequest {
   id: string;
   name: string;
@@ -8,47 +10,67 @@ export interface VisitRequest {
   time: string;
   method: string;
   prayer: string;
-  createdAt: string;
+  created_at: string;
 }
 
-const STORAGE_KEY = 'visit_requests';
+export async function getRequests(): Promise<VisitRequest[]> {
+  const { data, error } = await supabase
+    .from("visit_requests")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-export function getRequests(): VisitRequest[] {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
-}
-
-export function addRequest(request: Omit<VisitRequest, 'id' | 'createdAt'>): void {
-  const requests = getRequests();
-  requests.push({
-    ...request,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-  });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-}
-
-export function deleteRequest(id: string): void {
-  const requests = getRequests().filter(r => r.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-}
-
-// Admin credentials (simple client-side auth)
-const ADMIN_ID = 'admin';
-const ADMIN_PW = 'jejadeul2024';
-
-export function adminLogin(id: string, pw: string): boolean {
-  if (id === ADMIN_ID && pw === ADMIN_PW) {
-    sessionStorage.setItem('admin_logged_in', 'true');
-    return true;
+  if (error) {
+    console.error("Failed to fetch requests:", error);
+    return [];
   }
-  return false;
+  return (data ?? []).map((r) => ({
+    ...r,
+    prayer: r.prayer ?? "",
+  }));
 }
 
-export function isAdminLoggedIn(): boolean {
-  return sessionStorage.getItem('admin_logged_in') === 'true';
+export async function addRequest(
+  request: Omit<VisitRequest, "id" | "created_at">
+): Promise<boolean> {
+  const { error } = await supabase.from("visit_requests").insert(request);
+  if (error) {
+    console.error("Failed to add request:", error);
+    return false;
+  }
+  return true;
 }
 
-export function adminLogout(): void {
-  sessionStorage.removeItem('admin_logged_in');
+export async function deleteRequest(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("visit_requests")
+    .delete()
+    .eq("id", id);
+  if (error) {
+    console.error("Failed to delete request:", error);
+    return false;
+  }
+  return true;
+}
+
+// Admin auth via Supabase Auth
+export async function adminLogin(
+  email: string,
+  password: string
+): Promise<boolean> {
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  return !error;
+}
+
+export async function isAdminLoggedIn(): Promise<boolean> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return !!session;
+}
+
+export async function adminLogout(): Promise<void> {
+  await supabase.auth.signOut();
 }

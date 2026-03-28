@@ -3,13 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getRequests, isAdminLoggedIn, adminLogout, deleteRequest, type VisitRequest } from "@/lib/storage";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
-
-declare module "jspdf" {
-  interface jsPDF {
-    autoTable: (options: Record<string, unknown>) => jsPDF;
-  }
-}
+import autoTable from "jspdf-autotable";
 
 function generatePDF(requests: VisitRequest[], title: string) {
   const doc = new jsPDF();
@@ -28,10 +22,10 @@ function generatePDF(requests: VisitRequest[], title: string) {
     r.time,
     r.method,
     r.prayer || "-",
-    new Date(r.createdAt).toLocaleDateString("ko-KR"),
+    new Date(r.created_at).toLocaleDateString("ko-KR"),
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 34,
     head: [["#", "이름", "학년", "연락처", "사유", "날짜", "시간", "방법", "기도제목", "신청일"]],
     body: rows,
@@ -45,30 +39,48 @@ function generatePDF(requests: VisitRequest[], title: string) {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<VisitRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAdminLoggedIn()) {
-      navigate("/admin");
-      return;
-    }
-    setRequests(getRequests());
+    const init = async () => {
+      const loggedIn = await isAdminLoggedIn();
+      if (!loggedIn) {
+        navigate("/admin");
+        return;
+      }
+      const data = await getRequests();
+      setRequests(data);
+      setLoading(false);
+    };
+    init();
   }, [navigate]);
 
-  const handleDelete = (id: string) => {
-    deleteRequest(id);
-    setRequests(getRequests());
-    toast.success("삭제되었습니다.");
+  const handleDelete = async (id: string) => {
+    const success = await deleteRequest(id);
+    if (success) {
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+      toast.success("삭제되었습니다.");
+    } else {
+      toast.error("삭제에 실패했습니다.");
+    }
   };
 
-  const handleLogout = () => {
-    adminLogout();
+  const handleLogout = async () => {
+    await adminLogout();
     navigate("/admin");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">로딩 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6 animate-fade-in">
           <div>
             <h1 className="text-xl font-bold text-foreground">심방 신청서 관리</h1>
@@ -93,7 +105,6 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* List */}
         {requests.length === 0 ? (
           <div className="bg-card rounded-2xl shadow-sm p-12 text-center animate-fade-in">
             <p className="text-muted-foreground">아직 신청서가 없습니다.</p>
@@ -121,7 +132,7 @@ const AdminDashboard = () => {
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground mt-1">
-                      신청일: {new Date(r.createdAt).toLocaleDateString("ko-KR")}
+                      신청일: {new Date(r.created_at).toLocaleDateString("ko-KR")}
                     </p>
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0 ml-4">

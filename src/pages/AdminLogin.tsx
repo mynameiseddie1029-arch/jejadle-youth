@@ -5,16 +5,20 @@ import { toast } from "sonner";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const [id, setId] = useState("");
+  const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminLogin(id, pw)) {
+    setLoading(true);
+    const success = await adminLogin(email, pw);
+    setLoading(false);
+    if (success) {
       toast.success("로그인 성공");
       navigate("/admin/dashboard");
     } else {
-      toast.error("아이디 또는 비밀번호가 올바르지 않습니다.");
+      toast.error("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
   };
 
@@ -32,9 +36,10 @@ const AdminLogin = () => {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <input
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            placeholder="아이디"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="이메일"
+            type="email"
             className="form-input"
           />
           <input
@@ -46,9 +51,10 @@ const AdminLogin = () => {
           />
           <button
             type="submit"
-            className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-opacity"
+            disabled={loading}
+            className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            로그인
+            {loading ? "로그인 중..." : "로그인"}
           </button>
         </form>
 
