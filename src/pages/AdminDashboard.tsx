@@ -25,7 +25,7 @@ function generatePDF(requests: VisitRequest[], title: string) {
     new Date(r.createdAt).toLocaleDateString("ko-KR"),
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 34,
     head: [["#", "이름", "학년", "연락처", "사유", "날짜", "시간", "방법", "기도제목", "신청일"]],
     body: rows,
