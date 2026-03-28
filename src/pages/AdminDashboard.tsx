@@ -4,6 +4,7 @@ import { getRequests, isAdminLoggedIn, adminLogout, deleteRequest, type VisitReq
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { NANUM_GOTHIC_BOLD } from "@/lib/fonts"; // 1. 폰트 데이터 불러오기
 
 function generatePDF(requests: VisitRequest[], title: string) {
   const doc = new jsPDF();
@@ -11,6 +12,12 @@ function generatePDF(requests: VisitRequest[], title: string) {
   doc.text(title, 14, 20);
   doc.setFontSize(10);
   doc.text(`출력일: ${new Date().toLocaleDateString("ko-KR")}`, 14, 28);
+  
+  // 2. jsPDF의 가상 파일 시스템에 폰트 등록
+  const fontFileName = "NanumGothicBold.ttf";
+  doc.addFileToVFS(fontFileName, NANUM_GOTHIC_BOLD);
+  doc.addFont(fontFileName, "NanumGothic", "normal");
+  doc.setFont("NanumGothic");
 
   const rows = requests.map((r, i) => [
     i + 1,
@@ -29,8 +36,8 @@ function generatePDF(requests: VisitRequest[], title: string) {
     startY: 34,
     head: [["#", "이름", "학년", "연락처", "사유", "날짜", "시간", "방법", "기도제목", "신청일"]],
     body: rows,
-    styles: { fontSize: 7, cellPadding: 2 },
-    headStyles: { fillColor: [0, 183, 182] },
+    styles: { fontSize: 7, font: "NanumGothic", cellPadding: 2 },
+    headStyles: { font: "NanumGothic", fillColor: [0, 183, 182] },
   });
 
   doc.save(`${title}.pdf`);
