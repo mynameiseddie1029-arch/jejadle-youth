@@ -3,13 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getRequests, isAdminLoggedIn, adminLogout, deleteRequest, type VisitRequest } from "@/lib/storage";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
-
-declare module "jspdf" {
-  interface jsPDF {
-    autoTable: (options: Record<string, unknown>) => jsPDF;
-  }
-}
+import autoTable from "jspdf-autotable";
 
 function generatePDF(requests: VisitRequest[], title: string) {
   const doc = new jsPDF();
