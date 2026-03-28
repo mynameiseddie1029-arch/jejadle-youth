@@ -22,11 +22,12 @@ const Index = () => {
     prayer: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const update = (key: string, value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.grade || !form.phone || !form.date || !form.time) {
       toast.error("필수 항목을 모두 입력해주세요.");
@@ -38,7 +39,8 @@ const Index = () => {
       toast.error("심방 사유와 방법을 선택해주세요.");
       return;
     }
-    addRequest({
+    setLoading(true);
+    const success = await addRequest({
       name: form.name,
       grade: form.grade,
       phone: form.phone,
@@ -48,7 +50,12 @@ const Index = () => {
       method,
       prayer: form.prayer,
     });
-    setSubmitted(true);
+    setLoading(false);
+    if (success) {
+      setSubmitted(true);
+    } else {
+      toast.error("신청 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
   };
 
   if (submitted) {
@@ -76,7 +83,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-lg mx-auto">
-        {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-accent-foreground px-4 py-1.5 rounded-full text-xs font-medium mb-4">
             ✝️ 제자들교회 청소년부
@@ -86,114 +92,51 @@ const Index = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
-          {/* 이름 */}
           <Field label="이름" required>
-            <input
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              placeholder="이름을 입력해주세요"
-              className="form-input"
-            />
+            <input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="이름을 입력해주세요" className="form-input" />
           </Field>
 
-          {/* 학년 */}
           <Field label="학년" required>
-            <input
-              value={form.grade}
-              onChange={(e) => update("grade", e.target.value)}
-              placeholder="예: 중1, 고2"
-              className="form-input"
-            />
+            <input value={form.grade} onChange={(e) => update("grade", e.target.value)} placeholder="예: 중1, 고2" className="form-input" />
           </Field>
 
-          {/* 핸드폰 번호 */}
           <Field label="핸드폰 번호" required>
-            <input
-              value={form.phone}
-              onChange={(e) => update("phone", e.target.value)}
-              placeholder="010-0000-0000"
-              className="form-input"
-              type="tel"
-            />
+            <input value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="010-0000-0000" className="form-input" type="tel" />
           </Field>
 
-          {/* 심방 사유 */}
           <Field label="심방 사유" required>
-            <ChipSelect
-              options={[...REASONS, "직접 입력"]}
-              value={form.reason}
-              onChange={(v) => update("reason", v)}
-            />
+            <ChipSelect options={[...REASONS, "직접 입력"]} value={form.reason} onChange={(v) => update("reason", v)} />
             {form.reason === "직접 입력" && (
-              <input
-                value={form.customReason}
-                onChange={(e) => update("customReason", e.target.value)}
-                placeholder="사유를 직접 입력해주세요"
-                className="form-input mt-2"
-              />
+              <input value={form.customReason} onChange={(e) => update("customReason", e.target.value)} placeholder="사유를 직접 입력해주세요" className="form-input mt-2" />
             )}
           </Field>
 
-          {/* 심방 날짜 */}
           <Field label="심방 날짜" required>
-            <ChipSelect
-              options={DAYS}
-              value={form.date}
-              onChange={(v) => update("date", v)}
-            />
+            <ChipSelect options={DAYS} value={form.date} onChange={(v) => update("date", v)} />
           </Field>
 
-          {/* 시간 */}
           <Field label="시간" required>
-            <input
-              value={form.time}
-              onChange={(e) => update("time", e.target.value)}
-              placeholder="예: 오후 2시"
-              className="form-input"
-            />
+            <input value={form.time} onChange={(e) => update("time", e.target.value)} placeholder="예: 오후 2시" className="form-input" />
           </Field>
 
-          {/* 심방 방법 */}
           <Field label="심방 방법" required>
-            <ChipSelect
-              options={[...METHODS, "직접 입력"]}
-              value={form.method}
-              onChange={(v) => update("method", v)}
-            />
+            <ChipSelect options={[...METHODS, "직접 입력"]} value={form.method} onChange={(v) => update("method", v)} />
             {form.method === "직접 입력" && (
-              <input
-                value={form.customMethod}
-                onChange={(e) => update("customMethod", e.target.value)}
-                placeholder="방법을 직접 입력해주세요"
-                className="form-input mt-2"
-              />
+              <input value={form.customMethod} onChange={(e) => update("customMethod", e.target.value)} placeholder="방법을 직접 입력해주세요" className="form-input mt-2" />
             )}
           </Field>
 
-          {/* 요청 사항 및 기도 제목 */}
           <Field label="요청 사항 및 기도 제목">
-            <textarea
-              value={form.prayer}
-              onChange={(e) => update("prayer", e.target.value)}
-              placeholder="자유롭게 작성해주세요"
-              rows={3}
-              className="form-input resize-none"
-            />
+            <textarea value={form.prayer} onChange={(e) => update("prayer", e.target.value)} placeholder="자유롭게 작성해주세요" rows={3} className="form-input resize-none" />
           </Field>
 
-          <button
-            type="submit"
-            className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90 transition-opacity shadow-md"
-          >
-            신청하기
+          <button type="submit" disabled={loading} className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90 transition-opacity shadow-md disabled:opacity-50">
+            {loading ? "신청 중..." : "신청하기"}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <button
-            onClick={() => navigate("/admin")}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
+          <button onClick={() => navigate("/admin")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
             관리자 로그인
           </button>
         </div>
@@ -202,7 +145,6 @@ const Index = () => {
   );
 };
 
-// Reusable field wrapper
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
@@ -214,7 +156,6 @@ function Field({ label, required, children }: { label: string; required?: boolea
   );
 }
 
-// Chip selector
 function ChipSelect({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex flex-wrap gap-2">
