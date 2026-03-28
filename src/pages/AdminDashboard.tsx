@@ -37,6 +37,20 @@ function generatePDF(requests: VisitRequest[], title: string) {
     body: rows,
     styles: { fontSize: 7, font: "NanumGothic", fontStyle: "normal", cellPadding: 2 },
     headStyles: { font: "NanumGothic", fontStyle: "normal", fillColor: [0, 183, 182] },
+    // 열별 너비 지정 (0부터 시작하므로 기도제목은 8번째 열)
+    columnStyles: {
+      0: { cellWidth: 7 },  // #
+      1: { cellWidth: 12 }, // 이름
+      2: { cellWidth: 10 }, // 학년
+      3: { cellWidth: 22 }, // 연락처
+      4: { cellWidth: 15 }, // 사유
+      5: { cellWidth: 15 }, // 날짜
+      6: { cellWidth: 15 }, // 시간
+      7: { cellWidth: 15 }, // 방법
+      8: { cellWidth: 45 }, // 기도제목 (너비를 넓게 고정)
+      9: { cellWidth: 20 }, // 신청일
+    },
+    margin: { left: 14, right: 14 } // 양옆 여백 고정
   });
 
   doc.save(`${title}.pdf`);
