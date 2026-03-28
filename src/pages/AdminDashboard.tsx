@@ -12,7 +12,7 @@ function generatePDF(requests: VisitRequest[], title: string) {
   const fontFileName = "NanumGothicBold.ttf";
   doc.addFileToVFS(fontFileName, NANUM_GOTHIC_BOLD);
   doc.addFont(fontFileName, "NanumGothic", "normal");
-  doc.setFont("NanumGothic");
+  doc.setFont("NanumGothic", "normal");
   doc.setFontSize(16);
   doc.text(title, 14, 20);
   doc.setFontSize(10);
@@ -35,8 +35,8 @@ function generatePDF(requests: VisitRequest[], title: string) {
     startY: 34,
     head: [["#", "이름", "학년", "연락처", "사유", "날짜", "시간", "방법", "기도제목", "신청일"]],
     body: rows,
-    styles: { fontSize: 7, font: "NanumGothic", cellPadding: 2 },
-    headStyles: { font: "NanumGothic", fillColor: [0, 183, 182] },
+    styles: { fontSize: 7, font: "NanumGothic", fontStyle: "normal", cellPadding: 2 },
+    headStyles: { font: "NanumGothic", fontStyle: "normal", fillColor: [0, 183, 182] },
   });
 
   doc.save(`${title}.pdf`);
